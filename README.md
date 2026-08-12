@@ -160,6 +160,7 @@ make release TAG=v1.0.0   # tag + GitHub release with assets
 - [X10 experiments](docs/x10-experiments-2026-08-12.md) — OSINT + A/B evidence.
 - [Autoinstall CI/CD emulation](docs/autoinstall-cicd-emulation-2026-08-12.md) — 12 bugs found.
 - [GitHub clone emulation](docs/emulation-github-clone-2026-08-12.md) — clone == mirror SHA.
+- [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md) · [Security](SECURITY.md)
 
 ---
 

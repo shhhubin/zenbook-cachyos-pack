@@ -1,0 +1,13 @@
+# Git attributes — line endings and diff behavior
+* text=auto
+
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+Makefile text eol=lf
+
+*.png binary
+*.patch text
+*.conf text
+*.service text
+*.rules text
