@@ -1,0 +1,122 @@
+diff --git a/lib/libsmu.h b/lib/libsmu.h
+index 6d8d39b..13df17e 100755
+--- a/lib/libsmu.h
++++ b/lib/libsmu.h
+@@ -101,6 +101,7 @@ typedef enum {
+     CODENAME_HAWKPOINT,
+     CODENAME_STORMPEAK,
+     CODENAME_STRIXHALO,
++    CODENAME_KRACKANPOINT,
+     CODENAME_COUNT
+ } smu_processor_codename;
+ 
+diff --git a/smu.c b/smu.c
+index 6eae6dc..f1ecf54 100755
+--- a/smu.c
++++ b/smu.c
+@@ -357,8 +357,8 @@ int smu_resolve_cpu_class(struct pci_dev *dev) {
+     case 0x44:
+       g_smu.codename = CODENAME_GRANITERIDGE;
+       break;
+-    case 0x60: //Strixpoint Ryzen AI 350
+-      g_smu.codename = CODENAME_STRIXPOINT;
++    case 0x60: // Krackan Point (Ryzen AI 7 350 / AI 5 340)
++      g_smu.codename = CODENAME_KRACKANPOINT;
+       break;
+     case 0x70: // Strix Halo (AI MAX+ 395)
+       g_smu.codename = CODENAME_STRIXHALO;
+@@ -421,6 +421,7 @@ int smu_init(struct pci_dev *dev) {
+   case CODENAME_REMBRANDT:
+   case CODENAME_PHOENIX:
+   case CODENAME_STRIXPOINT:
++  case CODENAME_KRACKANPOINT:
+   case CODENAME_HAWKPOINT:
+   case CODENAME_STRIXHALO:
+     g_smu.addr_rsmu_mb_cmd = 0x3B10A20;
+@@ -470,6 +471,7 @@ LOG_RSMU:
+   case CODENAME_REMBRANDT:
+   case CODENAME_PHOENIX:
+   case CODENAME_STRIXPOINT:
++  case CODENAME_KRACKANPOINT:
+   case CODENAME_HAWKPOINT:
+   case CODENAME_STRIXHALO:
+     goto MP1_DETECT;
+@@ -536,6 +538,7 @@ MP1_DETECT:
+     g_smu.addr_mp1_mb_args = 0x3B10998;
+     break;
+   case CODENAME_STRIXPOINT:
++  case CODENAME_KRACKANPOINT:
+   case CODENAME_STRIXHALO:
+     g_smu.mp1_if_ver = IF_VERSION_13;
+     g_smu.addr_mp1_mb_cmd = 0x3b10928;
+@@ -604,6 +607,8 @@ const char *getCodeName(enum smu_processor_codename codename) {
+     return "Phoenix";
+   case CODENAME_STRIXPOINT:
+     return "Strix Point";
++  case CODENAME_KRACKANPOINT:
++    return "Krackan Point";
+   case CODENAME_HAWKPOINT:
+     return "Hawk Point";
+   case CODENAME_STORMPEAK:
+@@ -682,6 +687,7 @@ u64 smu_get_dram_base_address(struct pci_dev *dev) {
+   case CODENAME_REMBRANDT:
+   case CODENAME_PHOENIX:
+   case CODENAME_STRIXPOINT:
++  case CODENAME_KRACKANPOINT:
+   case CODENAME_STRIXHALO:
+   case CODENAME_HAWKPOINT:
+     fn[0] = 0x66;
+@@ -799,6 +805,7 @@ enum smu_return_val smu_transfer_table_to_dram(struct pci_dev *dev) {
+   case CODENAME_REMBRANDT:
+   case CODENAME_PHOENIX:
+   case CODENAME_STRIXPOINT:
++  case CODENAME_KRACKANPOINT:
+   case CODENAME_STRIXHALO:
+   case CODENAME_HAWKPOINT:
+     args.s.arg0 = 3;
+@@ -894,6 +901,7 @@ enum smu_return_val smu_get_pm_table_version(struct pci_dev *dev,
+   case CODENAME_REMBRANDT:
+   case CODENAME_PHOENIX:
+   case CODENAME_STRIXPOINT:
++  case CODENAME_KRACKANPOINT:
+   case CODENAME_STRIXHALO:
+   case CODENAME_HAWKPOINT:
+     fn = 0x06;
+@@ -1139,6 +1147,7 @@ u32 smu_update_pmtable_size(u32 version) {
+     }
+     break;
+   case CODENAME_STRIXPOINT:
++  case CODENAME_KRACKANPOINT:
+     switch (version) {
+     case 0x5D0008:
+     case 0x5D0009: // Ryzen PRO / Ryzen AI 9 HX 370 (Strix Point, verified pm_table_version=0x5D0009, pm_table_size=0xD54)
+@@ -1147,6 +1156,9 @@ u32 smu_update_pmtable_size(u32 version) {
+     case 0x650007: // Ryzen AI 7 350 variant
+       g_smu.pm_dram_map_size = 0xD54;
+       break;
++    case 0x650005: // Krackan Point (Ryzen AI 7 350 / AI 5 340, verified by PR #24)
++      g_smu.pm_dram_map_size = 0x1000; // Real size is unknown !!!
++      break;
+     default:
+       goto UNKNOWN_PM_TABLE_VERSION;
+     }
+@@ -1238,6 +1250,7 @@ enum smu_return_val smu_read_pm_table(struct pci_dev *dev, unsigned char *dst,
+         g_smu.codename == CODENAME_PHOENIX ||
+         g_smu.codename == CODENAME_STRIXPOINT ||
+         g_smu.codename == CODENAME_STRIXHALO ||
++        g_smu.codename == CODENAME_KRACKANPOINT ||
+         g_smu.codename == CODENAME_CEZANNE ||
+         g_smu.codename == CODENAME_CHAGALL ||
+         g_smu.codename == CODENAME_MILAN ||
+diff --git a/smu.h b/smu.h
+index c21bf45..bea1587 100755
+--- a/smu.h
++++ b/smu.h
+@@ -91,6 +91,7 @@ enum smu_processor_codename {
+     CODENAME_HAWKPOINT,
+     CODENAME_STORMPEAK,
+     CODENAME_STRIXHALO,
++    CODENAME_KRACKANPOINT,
+     CODENAME_COUNT
+ };
+ 

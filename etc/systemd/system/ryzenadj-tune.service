@@ -1,0 +1,11 @@
+[Unit]
+Description=RyzenAdj CPU thermal target (Krackan Point, UM3406KA)
+After=multi-user.target
+ConditionACPower=true
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ryzenadj -f 90
+
+[Install]
+WantedBy=multi-user.target

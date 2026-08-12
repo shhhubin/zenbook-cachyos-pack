@@ -1,0 +1,6 @@
+#!/bin/sh
+# asus-battery-charge-limit-sleep — systemd-sleep hook: re-apply threshold after suspend/hibernate.
+case "$1/$2" in
+  post/*) /usr/local/sbin/asus-battery-charge-limit.sh ;;
+esac
+exit 0

@@ -1,0 +1,4 @@
+# Re-apply ASUS battery charge threshold after resume from suspend/hibernate.
+# Persistence notes (ArchWiki): charge_control_end_threshold resets on power cycle and after hibernate;
+# survives suspend-to-RAM. udev rule covers boot; this hook covers resume.
+ACTION=="add", KERNEL=="asus-nb-wmi", RUN+="/usr/local/sbin/asus-battery-charge-limit.sh"

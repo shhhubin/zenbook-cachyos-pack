@@ -1,0 +1,26 @@
+# Secrets / credentials — never commit
+.env
+*.token
+*_token*
+*infomaniak*
+*.key
+*.pem
+id_rsa*
+id_ed25519*
+known_hosts
+
+# Runtime evidence
+evidence/
+*.log
+/tmp/
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local-only
+*.qcow2
+*.iso
+__pycache__/
