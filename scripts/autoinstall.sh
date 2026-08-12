@@ -54,6 +54,17 @@ warn() { echo -e "\033[1;33m[WARN]\033[0m $*" | tee -a "$LOG"; }
 die()  { echo -e "\033[1;31m[FAIL]\033[0m $*" | tee -a "$LOG"; exit 1; }
 step() { STEP=$((STEP+1)); echo "" | tee -a "$LOG"; echo "=== [${STEP}/${TOTAL_STEPS}] $* ===" | tee -a "$LOG"; }
 
+# pacman-retry: зеркала нестабильны (RT-G: 404 на часть пакетов) — 3 попытки
+pacretry() {  # args: chroot-флаг и pacman-аргументы
+  local attempts=3 i
+  for i in 1 2 3; do
+    if "$@" >/dev/null 2>&1; then return 0; fi
+    warn "pacman попытка $i/3 не удалась — повторяю (зеркало может быть нестабильным)"
+    sleep 5
+  done
+  "$@"   # последняя попытка с видимым выводом ошибок
+}
+
 confirm_or_exit() {
   if [ "$AUTO_YES" = "1" ]; then return 0; fi
   local prompt="$1"
@@ -114,7 +125,14 @@ esac
 [ -b "$DISK" ] || die "Диск $DISK не существует. Проверь: lsblk"
 say "OK: диск $DISK существует"
 
-# Mount state — никогда не стирать примонтированный/активный диск
+# Mount state — никогда не стирать примонтированный/активный диск.
+# НО: если /mnt оставлен от прерванной установки — аккуратно размонтируем СВОИ subvolumes
+# (это идемпотентность: повторный запуск после Ctrl+C должен работать без ручных шагов)
+if mountpoint -q /mnt 2>/dev/null; then
+  warn "/mnt примонтирован (вероятно, прерванная установка) — размонтирую"
+  umount -R /mnt 2>/dev/null || true
+  sleep 1
+fi
 if mount | grep -q "^$DISK"; then
   die "Диск $DISK примонтирован. Размонтируй (umount -R /mnt) и повтори."
 fi
@@ -172,6 +190,13 @@ if [ -z "$USER_PASS" ] && [ "$AUTO_YES" != "1" ]; then
   read -r -s -p "Повтори пароль: " USER_PASS2; echo
   [ "$USER_PASS" = "$USER_PASS2" ] || die "Пароли не совпадают."
 fi
+# Валидация: символы ' и : ломают формат chpasswd (user:pass) — защита от дурака
+case "$USER_PASS" in
+  *\'*|*:*) die "Пароль не должен содержать символы ' и : (формат chpasswd). Выбери другой." ;;
+esac
+case "$ROOT_PASS" in
+  *\'*|*:*) die "Root-пароль не должен содержать символы ' и : (формат chpasswd). Выбери другой." ;;
+esac
 [ -n "$USER_PASS" ] || USER_PASS="$(openssl rand -base64 12 | tr -d '/+=')"  # non-interactive: random
 [ -n "$ROOT_PASS" ] || ROOT_PASS="$USER_PASS"
 say "OK: пароли готовы (non-interactive: сгенерированы случайно, смотри лог)"
@@ -208,7 +233,9 @@ if [ "$LUKS" = "1" ]; then
   # Backup LUKS header — критично для восстановления
   mkdir -p /mnt-backup-luks
   printf '%s' "$LUKS_PASS" | cryptsetup luksHeaderBackup "$P2" --header-backup-file /mnt-backup-luks/luks-header.bin
-  say "LUKS header backup: /mnt-backup-luks/luks-header.bin (сохрани его на внешний носитель!)"
+  warn "LUKS header backup: /mnt-backup-luks/luks-header.bin — это LIVE-память (tmpfs)!"
+  warn "Скопируй luks-header.bin на ВНЕШНИЙ носитель ДО reboot — иначе header не восстановить."
+  say "LUKS header backup создан (см. WARN выше)"
   mkfs.btrfs -f /dev/mapper/cryptroot
   ROOT_DEV=/dev/mapper/cryptroot
 else
@@ -280,7 +307,7 @@ cat > /mnt/etc/sdboot-manage.conf.d/90-apst.conf <<'EOF'
 # from NVMe APST deep-power-stall death. Survives kernel updates.
 LINUX_OPTIONS="${LINUX_OPTIONS} nvme_core.default_ps_max_latency_us=0 pcie_port_pm=off pcie_aspm=off"
 EOF
-arch-chroot /mnt pacman -S --noconfirm --needed linux-zen linux-zen-headers >/dev/null 2>&1
+pacretry arch-chroot /mnt pacman -S --noconfirm --needed linux-zen linux-zen-headers
 arch-chroot /mnt mkinitcpio -P >/dev/null 2>&1 || true
 
 # Fallback entry: в минимальной среде linux-zen.conf не создаётся автоматически
@@ -329,14 +356,14 @@ step "Установка KDE Desktop + приложений (долго)"
 if [ "$SKIP_DESKTOP" = "1" ]; then
   say "SKIP_DESKTOP=1 — пропускаю KDE/приложения (CI-режим)"
 else
-  arch-chroot /mnt pacman -S --noconfirm --needed plasma-desktop powerdevil \
+  pacretry arch-chroot /mnt pacman -S --noconfirm --needed plasma-desktop powerdevil \
     power-profiles-daemon kscreen dolphin konsole kate ark spectacle gwenview kcalc \
     keepassxc telegram-desktop obsidian ghostty git github-cli ufw openssh \
     ghostty ripgrep rsync openssl python python-pip python-numpy stress \
     smartmontools lm_sensors cpupower btrfs-progs btrfsmaintenance fwupd \
     xrt xrt-plugin-amdxdna cmake dkms syncthing restic rclone typst \
     libreoffice-fresh haruna vlc-plugins-all qemu-desktop filezilla nmap \
-    yabsnap paru >/dev/null 2>&1
+    yabsnap paru
   say "OK: desktop + приложения"
 fi
 
@@ -415,7 +442,7 @@ warn "FastFlowLM / ollama модели — user-local, НЕ входят в па
 # ============================================================================
 step "Безопасность (UFW default-deny)"
 # UFW ставится ВСЕГДА (независимо от --skip-desktop) — безопасность не опциональна
-arch-chroot /mnt pacman -S --noconfirm --needed ufw >/dev/null 2>&1
+pacretry arch-chroot /mnt pacman -S --noconfirm --needed ufw
 arch-chroot /mnt /bin/bash -c "
   systemctl enable NetworkManager >/dev/null 2>&1
   ufw default deny incoming >/dev/null 2>&1
