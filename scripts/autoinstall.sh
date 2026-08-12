@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 # Runs INSIDE the CachyOS live ISO. One line:
 #
-#   curl -fL https://raw.githubusercontent.com/shhubin/zenbook-cachyos-pack/main/scripts/autoinstall.sh -o /tmp/ai.sh && bash /tmp/ai.sh
+#   curl -fL https://raw.githubusercontent.com/shhhubin/zenbook-cachyos-pack/main/scripts/autoinstall.sh -o /tmp/ai.sh && bash /tmp/ai.sh
 #
 # Or non-interactive (CI / emulation / unattended):
 #
@@ -365,7 +365,7 @@ if [ -f "$PATCH_LOCAL" ]; then
   arch-chroot /mnt /bin/bash -c "cd /tmp/ryzen_smu && git apply --check ryzen_smu-patch.patch && git apply ryzen_smu-patch.patch"
 else
   # fallback: скачать из GitHub raw (SHA должен совпадать с 32007196…)
-  curl -fsSL --max-time 30 "https://raw.githubusercontent.com/shhubin/zenbook-cachyos-pack/main/patches/ryzen_smu-krackan-full-adapted.patch" -o /tmp/ryzen_smu-patch.patch
+  curl -fsSL --max-time 30 "https://raw.githubusercontent.com/shhhubin/zenbook-cachyos-pack/main/patches/ryzen_smu-krackan-full-adapted.patch" -o /tmp/ryzen_smu-patch.patch
   cp /tmp/ryzen_smu-patch.patch /mnt/tmp/ryzen_smu-patch.patch
   arch-chroot /mnt /bin/bash -c "cd /tmp/ryzen_smu && git apply --check ryzen_smu-patch.patch && git apply ryzen_smu-patch.patch"
 fi

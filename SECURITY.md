@@ -8,8 +8,8 @@ Because the scripts run with elevated privileges during install, treat security 
 **Please do NOT open a public issue for security problems.**
 
 - Report privately via GitHub Security Advisories:
-  https://github.com/shhubin/zenbook-cachyos-pack/security/advisories/new
-- Or open a private discussion: https://github.com/shhubin/zenbook-cachyos-pack/discussions
+  https://github.com/shhhubin/zenbook-cachyos-pack/security/advisories/new
+- Or open a private discussion: https://github.com/shhhubin/zenbook-cachyos-pack/discussions
 
 ## What is in scope
 

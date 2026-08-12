@@ -5,7 +5,7 @@
 **Foolproof one-line installer + zero-trust verify kit** for ASUS Zenbook 14 UM3406KA
 (Ryzen AI 7 350 · Krackan Point · Radeon 860M · XDNA 2 NPU).
 
-**Status:** [CI passing](https://github.com/shhubin/zenbook-cachyos-pack/actions) · [Release v1.0.0](https://github.com/shhubin/zenbook-cachyos-pack/releases) · MIT License · *private repo (badges not rendered by shields.io)*
+**Status:** [![CI](https://github.com/shhhubin/zenbook-cachyos-pack/actions/workflows/ci.yml/badge.svg)](https://github.com/shhhubin/zenbook-cachyos-pack/actions) · [![Release](https://img.shields.io/github/v/release/shhhubin/zenbook-cachyos-pack)](https://github.com/shhhubin/zenbook-cachyos-pack/releases) · [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 *Every number verified 2026-08-12 on the live machine; install logic verified in QEMU.*
 
@@ -18,7 +18,7 @@
 Boot the CachyOS ISO, open a terminal (Ctrl+Alt+F2), and paste **one line**:
 
 ```bash
-curl -fL https://raw.githubusercontent.com/shhubin/zenbook-cachyos-pack/main/scripts/autoinstall.sh -o /tmp/ai.sh && bash /tmp/ai.sh
+curl -fL https://raw.githubusercontent.com/shhhubin/zenbook-cachyos-pack/main/scripts/autoinstall.sh -o /tmp/ai.sh && bash /tmp/ai.sh
 ```
 
 The script installs a **fully preconfigured system**: GPT + ESP 4G + Btrfs subvolumes,

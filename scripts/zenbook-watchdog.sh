@@ -44,7 +44,7 @@ if [ -n "$OUT" ]; then
   echo "Zenbook UM3406KA — предупреждение стражника:"
   echo ""
   echo -n "$OUT"
-  echo "Пакет/runbook: https://github.com/shhubin/zenbook-cachyos-pack"
+  echo "Пакет/runbook: https://github.com/shhhubin/zenbook-cachyos-pack"
 else
   # silence = OK
   :

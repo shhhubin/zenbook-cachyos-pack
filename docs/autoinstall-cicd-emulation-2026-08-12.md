@@ -3,7 +3,7 @@
 ## Продукт
 `scripts/autoinstall.sh` — одна строка в live ISO ставит преднастроенную CachyOS:
 ```
-curl -fL https://raw.githubusercontent.com/shhubin/zenbook-cachyos-pack/main/scripts/autoinstall.sh -o /tmp/ai.sh && bash /tmp/ai.sh
+curl -fL https://raw.githubusercontent.com/shhhubin/zenbook-cachyos-pack/main/scripts/autoinstall.sh -o /tmp/ai.sh && bash /tmp/ai.sh
 ```
 19 защитных гейтов, LUKS2 опционально, linux-zen+APST, KDE, CPU/NPU/AI, UFW.
 

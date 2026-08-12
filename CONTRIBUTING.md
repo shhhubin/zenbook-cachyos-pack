@@ -37,5 +37,5 @@ make emulate-fast  # QEMU acceptance of the one-line install — MUST pass
 
 ## Good first issues
 
-Check the [issue tracker](https://github.com/shhubin/zenbook-cachyos-pack/issues)
+Check the [issue tracker](https://github.com/shhhubin/zenbook-cachyos-pack/issues)
 for items tagged `good first issue`.
