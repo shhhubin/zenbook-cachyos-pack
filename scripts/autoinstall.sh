@@ -299,6 +299,9 @@ arch-chroot /mnt pacman -S --noconfirm --needed cachyos-keyring >/dev/null 2>&1 
   || arch-chroot /mnt pacman -S --noconfirm --needed archlinux-keyring >/dev/null 2>&1 || true
 arch-chroot /mnt pacman-key --init >/dev/null 2>&1 || true
 arch-chroot /mnt pacman-key --populate archlinux cachyos >/dev/null 2>&1 || true
+# КРИТИЧНО (RT-H2): populate НЕ делает локальную подпись → 'unknown trust'.
+# --lsign-key добавляет доверие к мастеру CachyOS, иначе база cachyos невалидна.
+arch-chroot /mnt pacman-key --lsign-key CachyOS >/dev/null 2>&1 || true
 arch-chroot /mnt pacman -Sy --noconfirm >/dev/null 2>&1 || true
 grep -q '^\[cachyos\]' /mnt/etc/pacman.conf && say "OK: [cachyos] добавлен в chroot" || warn "НЕ удалось добавить [cachyos]"
 
