@@ -47,7 +47,7 @@ LOG="/root/autoinstall.log"
 
 # --- Globals ---------------------------------------------------------------
 STEP=0
-TOTAL_STEPS=14
+TOTAL_STEPS=15
 
 say()  { echo -e "\033[1;32m[autoinstall]\033[0m $*" | tee -a "$LOG"; }
 warn() { echo -e "\033[1;33m[WARN]\033[0m $*" | tee -a "$LOG"; }
@@ -276,6 +276,27 @@ pacstrap -K /mnt base base-devel linux linux-firmware \
   amd-ucode mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon \
   opencl-mesa lib32-opencl-mesa --noconfirm
 say "OK: базовый стек установлен"
+
+# CachyOS repo: pacstrap НЕ копирует [cachyos] в chroot (RT-H: yabsnap/paru недоступны).
+# Добавляем секцию в /mnt/etc/pacman.conf + ключи + зеркала — иначе cachyos-пакеты не найдутся.
+step "CachyOS repo в chroot (для yabsnap/paru и др.)"
+arch-chroot /mnt /bin/bash -c "
+  grep -q '^\[cachyos\]' /etc/pacman.conf || cat >> /etc/pacman.conf <<'PACEOF'
+
+[cachyos]
+Include = /etc/pacman.d/cachyos-mirrorlist
+PACEOF
+"
+# зеркала: копируем из live (там уже настроено) или используем archlinux default
+if [ -f /etc/pacman.d/cachyos-mirrorlist ]; then
+  cp /etc/pacman.d/cachyos-mirrorlist /mnt/etc/pacman.d/cachyos-mirrorlist
+else
+  printf 'Server = https://geo.mirror.pkgbuild.com/\$\$repo/os/\$\$arch\n' > /mnt/etc/pacman.d/cachyos-mirrorlist
+fi
+arch-chroot /mnt pacman-key --init >/dev/null 2>&1 || true
+arch-chroot /mnt pacman-key --populate archlinux cachyos >/dev/null 2>&1 || true
+arch-chroot /mnt pacman -Sy --noconfirm >/dev/null 2>&1 || true
+grep -q '^\[cachyos\]' /mnt/etc/pacman.conf && say "OK: [cachyos] добавлен в chroot" || warn "НЕ удалось добавить [cachyos]"
 
 # ============================================================================
 # STEP 7 — fstab + locale + hostname + user
