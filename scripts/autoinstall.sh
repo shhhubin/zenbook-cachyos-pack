@@ -403,6 +403,12 @@ if [ "$SKIP_AI" = "1" ]; then
   say "SKIP_AI=1 — пропускаю ryzenadj/ryzen_smu сборку (CI-режим)"
 else
   arch-chroot /mnt pacman -S --noconfirm --needed git >/dev/null 2>&1 || true
+  # КРИТИЧНО (полная эмуляция 2026-08-12): chroot resolv.conf ПУСТОЙ (pacstrap не копирует),
+  # DNS в chroot не работает → git clone молча падает. Копируем resolv.conf из live.
+  if ! grep -q "nameserver" /mnt/etc/resolv.conf 2>/dev/null; then
+    warn "resolv.conf в chroot пуст — копирую из live (DNS для git clone)"
+    cp /etc/resolv.conf /mnt/etc/resolv.conf
+  fi
 arch-chroot /mnt /bin/bash -c "
   set -e
   cd /tmp
@@ -411,8 +417,8 @@ arch-chroot /mnt /bin/bash -c "
   cp build/ryzenadj /usr/local/bin/ryzenadj
   cd /tmp
   rm -rf ryzen_smu && git clone --depth 1 -q https://github.com/amkillam/ryzen_smu ryzen_smu
-  cd ryzen_smu
-" || die "CPU setup (build tools) failed"
+  cd /tmp/ryzen_smu
+" || die "CPU setup (build tools) failed: git clone/cd — проверь сеть и resolv.conf в chroot"
 # ПАТЧ из пакета — если скрипт запущен из клона/зеркала, патч рядом; иначе скачиваем
 PATCH_LOCAL="$(dirname "$0")/patches/ryzen_smu-krackan-full-adapted.patch"
 if [ -f "$PATCH_LOCAL" ]; then
