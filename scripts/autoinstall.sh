@@ -293,6 +293,10 @@ if [ -f /etc/pacman.d/cachyos-mirrorlist ]; then
 else
   printf 'Server = https://geo.mirror.pkgbuild.com/\$\$repo/os/\$\$arch\n' > /mnt/etc/pacman.d/cachyos-mirrorlist
 fi
+# KEYRING КРИТИЧЕН: без cachyos-keyring PGP-подпись 'unknown trust' (RT-H2).
+# Ставим keyring ПЕРЕД populate, иначе база cachyos невалидна.
+arch-chroot /mnt pacman -S --noconfirm --needed cachyos-keyring >/dev/null 2>&1 \
+  || arch-chroot /mnt pacman -S --noconfirm --needed archlinux-keyring >/dev/null 2>&1 || true
 arch-chroot /mnt pacman-key --init >/dev/null 2>&1 || true
 arch-chroot /mnt pacman-key --populate archlinux cachyos >/dev/null 2>&1 || true
 arch-chroot /mnt pacman -Sy --noconfirm >/dev/null 2>&1 || true
