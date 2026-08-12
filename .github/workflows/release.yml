@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build release assets
+        run: |
+          mkdir -p dist
+          cp scripts/autoinstall.sh scripts/verify-install.sh scripts/setup-ryzenadj.sh \
+             scripts/zenbook-watchdog.sh patches/ryzen_smu-krackan-full-adapted.patch \
+             docs/runbook.md README.md dist/
+          cd dist
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          files: dist/*
+          draft: false
+          prerelease: false
